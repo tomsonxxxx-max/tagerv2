@@ -2,7 +2,7 @@
 // Fix: Correct import path
 import { AudioFile, ProcessingState } from '../types';
 
-export type SortKey = 'dateAdded' | 'originalName' | 'newName' | 'state' | 'title' | 'artist' | 'album' | 'bpm' | 'key' | 'genre' | 'year' | 'rating';
+export type SortKey = 'dateAdded' | 'originalName' | 'newName' | 'state' | 'title' | 'artist' | 'album' | 'bpm' | 'key' | 'genre' | 'year' | 'rating' | 'mood' | 'trackNumber' | 'albumArtist' | 'composer' | 'recordLabel' | 'isrc' | 'energy' | 'danceability' | 'bitrate' | 'sampleRate' | 'encodedBy' | 'originalArtist' | 'copyright' | 'discNumber';
 
 export interface SortConfig {
     key: SortKey;
@@ -31,7 +31,6 @@ const getValue = (file: AudioFile, key: SortKey): string | number => {
         case 'genre': return (tags.genre || '').toLowerCase();
         case 'year': return tags.year || '';
         case 'bpm': {
-             // Handle BPM as number or string parsing
              const bpm = tags.bpm;
              if (typeof bpm === 'number') return bpm;
              if (typeof bpm === 'string') return parseFloat(bpm) || 0;
@@ -39,6 +38,20 @@ const getValue = (file: AudioFile, key: SortKey): string | number => {
         }
         case 'key': return (tags.initialKey || '').toLowerCase();
         case 'rating': return tags.rating || 0;
+        case 'mood': return (tags.mood || '').toLowerCase();
+        case 'bitrate': return tags.bitrate || 0;
+        case 'sampleRate': return tags.sampleRate || 0;
+        case 'trackNumber': return tags.trackNumber || '';
+        case 'albumArtist': return (tags.albumArtist || '').toLowerCase();
+        case 'composer': return (tags.composer || '').toLowerCase();
+        case 'recordLabel': return (tags.recordLabel || '').toLowerCase();
+        case 'isrc': return (tags.isrc || '').toLowerCase();
+        case 'energy': return tags.energy || 0;
+        case 'danceability': return tags.danceability || 0;
+        case 'encodedBy': return (tags.encodedBy || '').toLowerCase();
+        case 'originalArtist': return (tags.originalArtist || '').toLowerCase();
+        case 'copyright': return (tags.copyright || '').toLowerCase();
+        case 'discNumber': return tags.discNumber || '';
         default: return '';
     }
 };

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { AudioFile } from "../types";
 import { SortConfig, SortKey } from "../utils/sortingUtils";
 
@@ -32,7 +32,23 @@ const DEFAULT_COLUMNS: ColumnDef[] = [
   { id: "bpm", label: "BPM", defaultWidth: 80 },
   { id: "key", label: "Tonacja", defaultWidth: 100 },
   { id: "genre", label: "Gatunek", defaultWidth: 150 },
+  { id: "album", label: "Album", defaultWidth: 180 },
+  { id: "year", label: "Rok", defaultWidth: 80 },
   { id: "rating", label: "Ocena", defaultWidth: 120 },
+  { id: "energy", label: "Energa", defaultWidth: 100 },
+  { id: "recordLabel", label: "Label", defaultWidth: 150 },
+  { id: "mood", label: "Nastrój", defaultWidth: 120 },
+  { id: "trackNumber", label: "Nr", defaultWidth: 60 },
+  { id: "bitrate", label: "kbps", defaultWidth: 90 },
+  { id: "albumArtist", label: "Artysta Albumu", defaultWidth: 180 },
+  { id: "composer", label: "Kompozytor", defaultWidth: 180 },
+  { id: "isrc", label: "ISRC", defaultWidth: 140 },
+  { id: "danceability", label: "Taneczność", defaultWidth: 100 },
+  { id: "sampleRate", label: "Sample Rate", defaultWidth: 110 },
+  { id: "encodedBy", label: "Encoder", defaultWidth: 140 },
+  { id: "originalArtist", label: "Oryg. Artysta", defaultWidth: 180 },
+  { id: "copyright", label: "Copyright", defaultWidth: 200 },
+  { id: "discNumber", label: "Dysk", defaultWidth: 60 },
   { id: "dateAdded", label: "Dodano", defaultWidth: 140 },
   { id: "actions", label: "", defaultWidth: 60 },
 ];
@@ -125,6 +141,77 @@ const TrackTable: React.FC<TrackTableProps> = ({
     );
   };
 
+  const renderCell = (file: AudioFile, colId: string) => {
+    const tags = file.fetchedTags || file.originalTags || {};
+    const isActive = activeFileId === file.id;
+
+    switch (colId) {
+      case "select":
+        return null; // Handled separately
+      case "title":
+        return (
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-white group-hover:text-[var(--accent-cyan)] transition-colors truncate">{tags.title || file.file.name}</span>
+            <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold truncate">{tags.artist || "UNKNOWN"}</span>
+          </div>
+        );
+      case "bpm":
+        return <span className="text-xs font-mono text-white/60 font-bold">{tags.bpm || "---"}</span>;
+      case "key":
+        return (
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isActive ? 'bg-[var(--accent-magenta)] text-white border-transparent' : 'bg-white/5 text-[var(--accent-magenta)] border-white/10 font-bold'}`}>
+            {tags.initialKey || "---"}
+          </span>
+        );
+      case "genre":
+        return <span className="text-xs text-white/40 font-medium truncate block">{tags.genre || "---"}</span>;
+      case "rating":
+        return <div className="flex h-full items-center">{renderStars(tags.rating)}</div>;
+      case "dateAdded":
+        return new Date(file.dateAdded).toLocaleDateString('pl-PL', { month: 'short', day: 'numeric', year: 'numeric' });
+      case "album":
+        return <span className="text-xs text-white/60 truncate block">{tags.album || "---"}</span>;
+      case "year":
+        return <span className="text-xs text-white/40 font-mono italic">{tags.year || "---"}</span>;
+      case "energy":
+        return <span className={`text-[10px] font-bold ${tags.energy ? 'text-[var(--accent-cyan)]' : 'text-white/10'}`}>{tags.energy ? `${tags.energy}/10` : '---'}</span>;
+      case "recordLabel":
+        return <span className="text-xs text-white/50 truncate block uppercase tracking-tight">{tags.recordLabel || "---"}</span>;
+      case "mood":
+        return <span className="text-xs text-white/40 truncate block capitalize">{tags.mood || "---"}</span>;
+      case "trackNumber":
+        return <span className="text-xs font-mono text-white/30">{tags.trackNumber || "--"}</span>;
+      case "bitrate":
+        return <span className="text-[10px] font-mono text-white/20">{tags.bitrate ? `${tags.bitrate}k` : "---"}</span>;
+      case "albumArtist":
+        return <span className="text-xs text-white/40 truncate block">{tags.albumArtist || "---"}</span>;
+      case "composer":
+        return <span className="text-xs text-white/30 italic truncate block">{tags.composer || "---"}</span>;
+      case "isrc":
+        return <span className="text-[10px] font-mono text-white/20 uppercase">{tags.isrc || "---"}</span>;
+      case "danceability":
+        return <span className={`text-[10px] font-bold ${tags.danceability ? 'text-[var(--accent-magenta)]' : 'text-white/10'}`}>{tags.danceability ? `${tags.danceability}/10` : '---'}</span>;
+      case "sampleRate":
+        return <span className="text-[10px] font-mono text-white/20">{tags.sampleRate ? `${tags.sampleRate}Hz` : "---"}</span>;
+      case "encodedBy":
+        return <span className="text-xs text-white/30 truncate block">{tags.encodedBy || "---"}</span>;
+      case "originalArtist":
+        return <span className="text-xs text-white/40 truncate block">{tags.originalArtist || "---"}</span>;
+      case "copyright":
+        return <span className="text-[9px] text-white/20 truncate block">{tags.copyright || "---"}</span>;
+      case "discNumber":
+        return <span className="text-xs font-mono text-white/30">{tags.discNumber || "--"}</span>;
+      case "actions":
+        return (
+          <button className="p-1 text-white/10 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        );
+      default:
+        return null;
+    }
+  };
+
   if (files.length === 0) return (
     <div className="flex-grow flex items-center justify-center text-white/20">
       <p>Brak utworów spełniających kryteria</p>
@@ -134,7 +221,7 @@ const TrackTable: React.FC<TrackTableProps> = ({
   return (
     <div className="flex-grow flex flex-col h-full overflow-hidden bg-transparent select-none">
       <div className="flex-grow overflow-auto min-h-0 scrollbar-custom">
-        <table className="w-full border-separate border-spacing-0 table-fixed">
+        <table className="min-w-full border-separate border-spacing-0 table-fixed">
           <thead className="sticky top-0 z-20">
             <tr className="bg-[var(--bg-base)]/80 backdrop-blur-md ">
               {DEFAULT_COLUMNS.map((col) => {
@@ -148,10 +235,10 @@ const TrackTable: React.FC<TrackTableProps> = ({
                     className={`relative px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-white/30 border-b border-white/5 text-left group/header ${isSortable ? 'cursor-pointer hover:text-white' : ''}`}
                     onClick={() => handleSort(col.id)}
                   >
-                    <div className="flex items-center gap-1">
-                      {col.label}
+                    <div className="flex items-center gap-1 overflow-hidden">
+                      <span className="truncate">{col.label}</span>
                       {sort && (
-                         <span className="text-[var(--accent-cyan)]">
+                         <span className="text-[var(--accent-cyan)] shrink-0">
                            {sort.direction === 'asc' ? '↑' : '↓'}
                          </span>
                       )}
@@ -171,8 +258,6 @@ const TrackTable: React.FC<TrackTableProps> = ({
             {files.map((file, idx) => {
               const isActive = activeFileId === file.id;
               const isSelected = selectedFileIds.includes(file.id);
-              const tags = file.fetchedTags || file.originalTags || {};
-              const date = new Date(file.dateAdded).toLocaleDateString('pl-PL', { month: 'short', day: 'numeric', year: 'numeric' });
 
               return (
                 <tr
@@ -189,54 +274,34 @@ const TrackTable: React.FC<TrackTableProps> = ({
                   onContextMenu={(e) => onContextMenu?.(e, file.id)}
                   className={`group transition-all cursor-pointer relative ${isActive ? 'bg-[var(--accent-cyan)]/10' : isSelected ? 'bg-white/5' : 'hover:bg-white/[0.03]'} ${isActive ? 'active-row' : ''}`}
                 >
-                  <td className="px-4 py-3 text-[10px] font-mono text-white/20 whitespace-nowrap overflow-hidden">
-                     <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onSelect(file.id, true);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="h-3 w-3 border border-white/20 bg-transparent rounded-sm checked:bg-[var(--accent-cyan)] focus:ring-0 cursor-pointer"
-                        />
-                        <div className="relative h-4 flex items-center justify-center">
-                           <span className="group-hover:opacity-0 transition-opacity">{(currentPage - 1) * files.length + idx + 1}</span>
-                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute text-[var(--accent-cyan)] opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                           </svg>
+                  {DEFAULT_COLUMNS.map((col) => (
+                    <td key={col.id} className={`px-4 py-3 overflow-hidden ${col.id === 'select' || col.id === 'actions' || col.id === 'bpm' || col.id === 'key' ? 'text-center' : ''} ${col.id === 'dateAdded' ? 'text-right' : ''}`}>
+                      {col.id === "select" ? (
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              onSelect(file.id, true);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-3 w-3 border border-white/20 bg-transparent rounded-sm checked:bg-[var(--accent-cyan)] focus:ring-0 cursor-pointer"
+                          />
+                          <div className="relative h-4 flex items-center justify-center min-w-[20px]">
+                             <span className="group-hover:opacity-0 transition-opacity text-[10px] font-mono text-white/20">{(currentPage - 1) * files.length + idx + 1}</span>
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute text-[var(--accent-cyan)] opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                             </svg>
+                          </div>
                         </div>
-                     </div>
-                  </td>
-                  <td className="px-4 py-3 overflow-hidden">
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-bold text-white group-hover:text-[var(--accent-cyan)] transition-colors truncate">{tags.title || file.file.name}</span>
-                      <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold truncate">{tags.artist || "UNKNOWN"}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center overflow-hidden">
-                    <span className="text-xs font-mono text-white/60 font-bold">{tags.bpm || "---"}</span>
-                  </td>
-                  <td className="px-4 py-3 text-center overflow-hidden">
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isActive ? 'bg-[var(--accent-magenta)] text-white border-transparent' : 'bg-white/5 text-[var(--accent-magenta)] border-white/10 font-bold'}`}>
-                      {tags.initialKey || "---"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 overflow-hidden">
-                    <span className="text-xs text-white/40 font-medium truncate block">{tags.genre || "---"}</span>
-                  </td>
-                  <td className="px-4 py-3 overflow-hidden">
-                    <div className="flex h-full items-center">{renderStars(tags.rating)}</div>
-                  </td>
-                  <td className="px-4 py-3 text-right text-[10px] text-white/20 font-bold uppercase tracking-wider overflow-hidden">
-                    {date}
-                  </td>
-                  <td className="px-4 py-3 overflow-hidden text-center">
-                     <button className="p-1 text-white/10 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                     </button>
-                  </td>
+                      ) : (
+                        <div className={`overflow-hidden ${col.id === 'dateAdded' ? 'text-[10px] text-white/20 font-bold uppercase tracking-wider' : ''}`}>
+                          {renderCell(file, col.id)}
+                        </div>
+                      )}
+                    </td>
+                  ))}
                 </tr>
               );
             })}
