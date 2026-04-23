@@ -5,6 +5,9 @@ interface DashboardProps {
   onImport: () => void;
   onFindDuplicates: () => void;
   onAnalyzeAll: () => void;
+  popularTags?: string[];
+  onTagClick?: (tag: string) => void;
+  onBatchEdit?: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -12,6 +15,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   onImport,
   onFindDuplicates,
   onAnalyzeAll,
+  onBatchEdit,
+  popularTags = [],
+  onTagClick,
 }) => {
   return (
     <div className="flex-grow overflow-y-auto p-12 space-y-12 animate-fade-in scrollbar-hide">
@@ -82,19 +88,42 @@ const Dashboard: React.FC<DashboardProps> = ({
            </button>
 
            <button 
-             onClick={onFindDuplicates}
+             onClick={onBatchEdit}
              className="flex items-center gap-4 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 hover:scale-[1.02] active:scale-95 transition-all group"
            >
               <div className="p-3 rounded-2xl bg-white/10 text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
               <div className="text-left">
-                 <p className="text-sm font-bold text-white">Duplikaty</p>
-                 <p className="text-[10px] text-white/40">Oczyść bibliotekę</p>
+                 <p className="text-sm font-bold text-white">Masowa Edycja</p>
+                 <p className="text-[10px] text-white/40">Zmień tagi wielu plików</p>
               </div>
            </button>
+        </div>
+      </div>
+
+      {/* Popular Tags Section */}
+      <div className="glass-effect rounded-[2.5rem] p-8 border border-white/5 space-y-6">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-white/30">Najpopularniejsze Tagi (Top 15)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+           {popularTags.slice(0, 15).map((tag, idx) => (
+              <button
+                key={tag}
+                onClick={() => onTagClick?.(tag)}
+                className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 hover:scale-[1.02] active:scale-95 transition-all group"
+              >
+                 <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-white/20">#{idx + 1}</span>
+                    <span className="text-sm font-bold text-white group-hover:text-[var(--accent-cyan)] transition-colors">{tag}</span>
+                 </div>
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/10 group-hover:text-[var(--accent-cyan)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                 </svg>
+              </button>
+           ))}
+           {popularTags.length === 0 && <p className="text-sm text-white/10 italic">Brak tagów do wyświetlenia. Zaimportuj pliki, aby zobaczyć statystyki.</p>}
         </div>
       </div>
     </div>

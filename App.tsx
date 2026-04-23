@@ -153,6 +153,7 @@ const App: React.FC = () => {
     currentPage,
     totalPages,
     setCurrentPage,
+    popularTags,
   } = useLibrary(renamePattern);
 
   const { analyzeBatch, isBatchAnalyzing } = useAIProcessing(
@@ -634,6 +635,9 @@ const App: React.FC = () => {
                files={files}
                onPlay={handlePlay}
                onSelectEntries={(ids) => setSelectedFileIds(ids)}
+               onContextMenu={handleContextMenu}
+               popularTags={popularTags}
+               onTagClick={(tag) => setFilters({ ...filters, search: tag })}
              />
            ) : files.length === 0 ? (
              <div className="flex-grow flex flex-col items-center justify-center p-12">
@@ -673,29 +677,31 @@ const App: React.FC = () => {
              />
            )}
            
-           {/* Panels */}
-           {showFilters && (
-             <RightPanel 
-               isFilterView
-               file={null}
-               allFiles={files}
-               onClose={() => setShowFilters(false)}
-               onRenamePatternSettings={() => {}}
-               filters={filters}
-               onFilterChange={setFilters}
-               availableGenres={availableGenres}
-             />
-           )}
-           
-           {activeFileId && !showFilters && (
-             <RightPanel 
-               file={activeFile}
-               allFiles={files}
-               onClose={() => activateFile(null as any)}
-               onRenamePatternSettings={() => setModalState({ type: "rename" })}
-               onActivateFile={activateFile}
-             />
-           )}
+          {/* Panels */}
+          {showFilters && (
+            <RightPanel 
+              isFilterView
+              file={null}
+              allFiles={files}
+              onClose={() => setShowFilters(false)}
+              onRenamePatternSettings={() => {}}
+              filters={filters}
+              onFilterChange={setFilters}
+              availableGenres={availableGenres}
+              popularTags={popularTags}
+            />
+          )}
+          
+          {activeFileId && !showFilters && (
+            <RightPanel 
+              file={activeFile}
+              allFiles={files}
+              onClose={() => activateFile(null as any)}
+              onRenamePatternSettings={() => setModalState({ type: "rename" })}
+              onActivateFile={activateFile}
+              popularTags={popularTags}
+            />
+          )}
         </div>
 
         <PlayerDock activeFile={activeFile} />
@@ -866,6 +872,7 @@ const App: React.FC = () => {
               onZoomCover={() => {}}
               isApplying={false}
               isDirectAccessMode={!!directoryHandle}
+              popularTags={popularTags}
             />
           )}
           {modalState.type === "smart-tagger" && (

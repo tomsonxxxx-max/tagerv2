@@ -13,6 +13,7 @@ interface EditTagsModalProps {
   onZoomCover: (imageUrl: string) => void;
   isApplying: boolean;
   isDirectAccessMode: boolean;
+  popularTags?: string[];
 }
 
 const EditTagsModal: React.FC<EditTagsModalProps> = ({
@@ -25,6 +26,7 @@ const EditTagsModal: React.FC<EditTagsModalProps> = ({
   onZoomCover,
   isApplying,
   isDirectAccessMode,
+  popularTags = [],
 }) => {
   const [tags, setTags] = useState<ID3Tags>({});
   const [manualQuery, setManualQuery] = useState("");
@@ -265,6 +267,20 @@ const EditTagsModal: React.FC<EditTagsModalProps> = ({
                          onChange={handleChange}
                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-5 text-sm text-white focus:border-[var(--accent-cyan)]/50 focus:ring-1 focus:ring-[var(--accent-cyan)]/20 transition-all font-medium"
                        />
+                       {key === "genre" && popularTags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5 transition-all">
+                            {popularTags.map(tag => (
+                              <button
+                                key={tag}
+                                type="button"
+                                onClick={() => setTags(prev => ({ ...prev, genre: tag }))}
+                                className="px-2 py-1 bg-white/5 border border-white/5 rounded-md text-[9px] text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                              >
+                                {tag}
+                               </button>
+                            ))}
+                          </div>
+                        )}
                     </div>
                  ))}
                  <div className="sm:col-span-2">

@@ -282,6 +282,21 @@ export const useLibrary = (renamePattern: string) => {
       return Array.from(genres).sort();
   }, [files]);
 
+  const popularTags = useMemo(() => {
+    const counts: Record<string, number> = {};
+    files.forEach(f => {
+      const tags = f.fetchedTags || f.originalTags;
+      if (tags.genre) counts[tags.genre] = (counts[tags.genre] || 0) + 1;
+      // Also potentially artist or label if they seem like "tags"
+      if (tags.recordLabel) counts[tags.recordLabel] = (counts[tags.recordLabel] || 0) + 1;
+    });
+    
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([tag]) => tag);
+  }, [files]);
+
   return {
     files,
     setFiles,
@@ -314,6 +329,7 @@ export const useLibrary = (renamePattern: string) => {
     filters,
     setFilters,
     availableGenres,
+    popularTags,
 
     // Playlist props
     playlists,

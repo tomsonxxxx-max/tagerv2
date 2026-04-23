@@ -15,6 +15,7 @@ interface RightPanelProps {
   filters?: any;
   onFilterChange?: (filters: any) => void;
   availableGenres?: string[];
+  popularTags?: string[];
 }
 
 const COLORS = [
@@ -75,6 +76,7 @@ const RightPanel: React.FC<RightPanelProps & { isFilterView?: boolean }> = ({
   filters,
   onFilterChange,
   availableGenres,
+  popularTags = []
 }) => {
   if (isFilterView) {
     const handleGenreChange = (genre: string | null) => {
@@ -146,17 +148,18 @@ const RightPanel: React.FC<RightPanelProps & { isFilterView?: boolean }> = ({
           </div>
 
           <div className="space-y-3">
-             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Popularne Tagu</label>
+             <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">TOP 15 Tagi</label>
              <div className="flex flex-wrap gap-2">
-                {['Techno', 'House', 'Trance', 'Ambient', 'Drum & Bass'].map(tag => (
+                {popularTags.map(tag => (
                    <button 
                      key={tag}
-                     onClick={() => onFilterChange?.({ ...filters, genre: tag })}
-                     className={`px-3 py-1.5 rounded-full border text-[11px] transition-all ${filters?.genre === tag ? 'bg-[var(--accent-cyan)] text-black glow-cyan border-transparent' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
+                     onClick={() => onFilterChange?.({ ...filters, search: tag })}
+                     className={`px-3 py-1.5 rounded-full border text-[11px] transition-all ${filters?.search === tag ? 'bg-[var(--accent-cyan)] text-black glow-cyan border-transparent' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`}
                    >
                      {tag}
                    </button>
                 ))}
+                {popularTags.length === 0 && <p className="text-[10px] text-white/10 italic">Brak tagów do wyświetlenia</p>}
              </div>
           </div>
         </div>

@@ -5,6 +5,10 @@ interface MediaBrowserProps {
   directoryHandle: any;
   files: AudioFile[];
   onPlay: (file: AudioFile) => void;
+  onContextMenu?: (e: React.MouseEvent, fileId: string) => void;
+  onSelectEntries?: (ids: string[]) => void;
+  popularTags?: string[];
+  onTagClick?: (tag: string) => void;
 }
 
 interface FileEntry {
@@ -19,6 +23,10 @@ const MediaBrowser: React.FC<MediaBrowserProps> = ({
   directoryHandle,
   files,
   onPlay,
+  onContextMenu,
+  onSelectEntries,
+  popularTags = [],
+  onTagClick,
 }) => {
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -98,14 +106,29 @@ const MediaBrowser: React.FC<MediaBrowserProps> = ({
         ))}
       </div>
 
+      {/* Top Bar with Tags */}
+      <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/[0.02]">
+         <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide py-1">
+            {popularTags.slice(0, 15).map(tag => (
+               <button
+                 key={tag}
+                 onClick={() => onTagClick?.(tag)}
+                 className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-[10px] text-white/50 hover:text-white transition-all whitespace-nowrap"
+               >
+                 #{tag}
+               </button>
+            ))}
+         </div>
+      </div>
+
       {/* Explorer Area */}
-      <div className="flex-grow overflow-y-auto p-4 scrollbar-hide">
+      <div className="flex-grow overflow-y-auto p-4 custom-scrollbar min-h-0">
         {loading ? (
           <div className="h-full flex items-center justify-center">
              <div className="w-10 h-10 border-4 border-[var(--accent-cyan)]/20 border-t-[var(--accent-cyan)] rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 pb-20">
             {currentPath.length > 0 && (
               <div 
                 onClick={navigateUp}
@@ -124,6 +147,7 @@ const MediaBrowser: React.FC<MediaBrowserProps> = ({
               <div 
                 key={entry.path}
                 onClick={() => entry.kind === 'directory' ? navigateTo(entry.name) : (entry.audioFile && onPlay(entry.audioFile))}
+                onContextMenu={(e) => entry.audioFile && onContextMenu?.(e, entry.audioFile.id)}
                 className="group relative flex flex-col items-center p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
               >
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110 ${

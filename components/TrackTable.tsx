@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback, useRef } from "react";
 import { AudioFile } from "../types";
-import { SortConfig } from "../utils/sortingUtils";
+import { SortConfig, SortKey } from "../utils/sortingUtils";
 
 interface TrackTableProps {
   files: AudioFile[];
@@ -21,85 +21,20 @@ interface TrackTableProps {
 }
 
 interface ColumnDef {
-  id: SortKey | "select";
+  id: SortKey | "select" | "actions";
   label: string;
   defaultWidth: number;
-  minWidth: number;
-  isSortable: boolean;
 }
 
-const columns: ColumnDef[] = [
-  {
-    id: "select",
-    label: "",
-    defaultWidth: 48,
-    minWidth: 48,
-    isSortable: false,
-  },
-  {
-    id: "state",
-    label: "Status",
-    defaultWidth: 60,
-    minWidth: 50,
-    isSortable: true,
-  },
-  {
-    id: "title",
-    label: "Tytuł",
-    defaultWidth: 250,
-    minWidth: 150,
-    isSortable: true,
-  },
-  {
-    id: "artist",
-    label: "Artysta",
-    defaultWidth: 180,
-    minWidth: 100,
-    isSortable: true,
-  },
-  { id: "bpm", label: "BPM", defaultWidth: 70, minWidth: 60, isSortable: true },
-  {
-    id: "key",
-    label: "Tonacja",
-    defaultWidth: 80,
-    minWidth: 70,
-    isSortable: true,
-  },
-  {
-    id: "recordLabel",
-    label: "Wydawca",
-    defaultWidth: 130,
-    minWidth: 100,
-    isSortable: true,
-  },
-  {
-    id: "year",
-    label: "Rok",
-    defaultWidth: 60,
-    minWidth: 50,
-    isSortable: true,
-  },
-  {
-    id: "genre",
-    label: "Gatunek",
-    defaultWidth: 130,
-    minWidth: 80,
-    isSortable: true,
-  },
-  {
-    id: "rating",
-    label: "Ocena",
-    defaultWidth: 100,
-    minWidth: 80,
-    isSortable: true,
-  },
-  {
-    id: "dateAdded",
-    label: "Dodano",
-    defaultWidth: 110,
-    minWidth: 100,
-    isSortable: true,
-  },
+const DEFAULT_COLUMNS: ColumnDef[] = [
+  { id: "select", label: "#", defaultWidth: 80 },
+  { id: "title", label: "Tytuł / Artysta", defaultWidth: 300 },
+  { id: "bpm", label: "BPM", defaultWidth: 80 },
+  { id: "key", label: "Tonacja", defaultWidth: 100 },
+  { id: "genre", label: "Gatunek", defaultWidth: 150 },
+  { id: "rating", label: "Ocena", defaultWidth: 120 },
+  { id: "dateAdded", label: "Dodano", defaultWidth: 140 },
+  { id: "actions", label: "", defaultWidth: 60 },
 ];
 
 const TrackTable: React.FC<TrackTableProps> = ({
@@ -112,12 +47,64 @@ const TrackTable: React.FC<TrackTableProps> = ({
   currentPage = 1,
   totalPages = 1,
   onPageChange,
+  onSort,
+  sortConfig,
 }) => {
-  const allVisibleSelected = useMemo(
-    () =>
-      files.length > 0 && files.every((f) => selectedFileIds.includes(f.id)),
-    [files, selectedFileIds],
-  );
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('trackTableColumnWidths');
+    if (saved) return JSON.parse(saved);
+    return Object.fromEntries(DEFAULT_COLUMNS.map(c => [c.id, c.defaultWidth]));
+  });
+
+  const resizingRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
+
+  const startResize = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resizingRef.current = {
+      id,
+      startX: e.clientX,
+      startWidth: columnWidths[id] || 100
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!resizingRef.current) return;
+      const delta = moveEvent.clientX - resizingRef.current.startX;
+      const newWidth = Math.max(40, resizingRef.current.startWidth + delta);
+      
+      setColumnWidths(prev => {
+        const updated = { ...prev, [resizingRef.current!.id]: newWidth };
+        localStorage.setItem('trackTableColumnWidths', JSON.stringify(updated));
+        return updated;
+      });
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.classList.remove('cursor-col-resize');
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.classList.add('cursor-col-resize');
+  }, [columnWidths]);
+
+  const handleSort = (key: string) => {
+    if (key === 'select' || key === 'actions') return;
+    
+    const existing = sortConfig.find(c => c.key === key);
+    if (existing) {
+      if (existing.direction === 'asc') {
+        onSort([{ key: key as SortKey, direction: 'desc' }]);
+      } else {
+        onSort([]);
+      }
+    } else {
+      onSort([{ key: key as SortKey, direction: 'asc' }]);
+    }
+  };
 
   const renderStars = (rating: number | undefined) => {
     const val = rating || 0;
@@ -138,25 +125,49 @@ const TrackTable: React.FC<TrackTableProps> = ({
     );
   };
 
-  if (files.length === 0) return null;
+  if (files.length === 0) return (
+    <div className="flex-grow flex items-center justify-center text-white/20">
+      <p>Brak utworów spełniających kryteria</p>
+    </div>
+  );
 
   return (
-    <div className="flex-grow flex flex-col overflow-hidden bg-transparent p-8 pb-32 select-none">
-      <div className="flex-grow overflow-y-auto scrollbar-hide">
-        <table className="w-full border-separate border-spacing-y-3">
-          <thead className="sticky top-0 z-10">
-            <tr className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/30">
-              <th className="px-6 py-4 text-left w-12">#</th>
-              <th className="px-6 py-4 text-left">Tytuł / Artysta</th>
-              <th className="px-6 py-4 text-center w-24">BPM</th>
-              <th className="px-6 py-4 text-center w-24">Tonacja</th>
-              <th className="px-6 py-4 text-left w-40">Gatunek</th>
-              <th className="px-6 py-4 text-center w-32">Ocena</th>
-              <th className="px-6 py-4 text-right w-40">DODANO</th>
-              <th className="px-6 py-4 text-center w-16"></th>
+    <div className="flex-grow flex flex-col h-full overflow-hidden bg-transparent select-none">
+      <div className="flex-grow overflow-auto min-h-0 scrollbar-custom">
+        <table className="w-full border-separate border-spacing-0 table-fixed">
+          <thead className="sticky top-0 z-20">
+            <tr className="bg-[var(--bg-base)]/80 backdrop-blur-md ">
+              {DEFAULT_COLUMNS.map((col) => {
+                const sort = sortConfig.find(c => c.key === col.id);
+                const isSortable = col.id !== 'select' && col.id !== 'actions';
+                
+                return (
+                  <th 
+                    key={col.id}
+                    style={{ width: columnWidths[col.id] || 100 }}
+                    className={`relative px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-white/30 border-b border-white/5 text-left group/header ${isSortable ? 'cursor-pointer hover:text-white' : ''}`}
+                    onClick={() => handleSort(col.id)}
+                  >
+                    <div className="flex items-center gap-1">
+                      {col.label}
+                      {sort && (
+                         <span className="text-[var(--accent-cyan)]">
+                           {sort.direction === 'asc' ? '↑' : '↓'}
+                         </span>
+                      )}
+                    </div>
+                    {/* Resize handle */}
+                    <div 
+                      onMouseDown={(e) => startResize(col.id, e)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute top-0 right-0 bottom-0 w-1 cursor-col-resize hover:bg-[var(--accent-cyan)]/50 transition-colors opacity-0 group-hover/header:opacity-100 z-30"
+                    />
+                  </th>
+                );
+              })}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-white/5">
             {files.map((file, idx) => {
               const isActive = activeFileId === file.id;
               const isSelected = selectedFileIds.includes(file.id);
@@ -174,11 +185,12 @@ const TrackTable: React.FC<TrackTableProps> = ({
                       onActivate(file);
                     }
                   }}
+                  onDoubleClick={() => onActivate(file)}
                   onContextMenu={(e) => onContextMenu?.(e, file.id)}
-                  className={`group glass-effect hover:bg-white/5 transition-all cursor-pointer relative ${isActive ? 'bg-white/10 ring-1 ring-[var(--accent-cyan)]/50' : isSelected ? 'bg-white/5 border-[var(--accent-cyan)]/20' : ''} rounded-2xl`}
+                  className={`group transition-all cursor-pointer relative ${isActive ? 'bg-[var(--accent-cyan)]/10' : isSelected ? 'bg-white/5' : 'hover:bg-white/[0.03]'} ${isActive ? 'active-row' : ''}`}
                 >
-                  <td className="px-6 py-4 rounded-l-2xl text-[10px] font-mono text-white/20 group-hover:text-white/60 transition-colors">
-                     <div className="flex items-center gap-4">
+                  <td className="px-4 py-3 text-[10px] font-mono text-white/20 whitespace-nowrap overflow-hidden">
+                     <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -187,41 +199,41 @@ const TrackTable: React.FC<TrackTableProps> = ({
                             onSelect(file.id, true);
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="h-3.5 w-3.5 rounded-none border border-white/20 bg-black checked:bg-[var(--accent-cyan)] checked:border-transparent transition-all cursor-pointer"
+                          className="h-3 w-3 border border-white/20 bg-transparent rounded-sm checked:bg-[var(--accent-cyan)] focus:ring-0 cursor-pointer"
                         />
-                        <div className="relative h-4 w-4 flex items-center justify-center">
-                           <span className="absolute inset-0 flex items-center justify-center group-hover:opacity-0 transition-opacity">{(currentPage - 1) * files.length + idx + 1}</span>
-                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute inset-0 text-[var(--accent-cyan)] opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="relative h-4 flex items-center justify-center">
+                           <span className="group-hover:opacity-0 transition-opacity">{(currentPage - 1) * files.length + idx + 1}</span>
+                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute text-[var(--accent-cyan)] opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                            </svg>
                         </div>
                      </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-white group-hover:text-[var(--accent-cyan)] transition-colors truncate max-w-[250px]">{tags.title || file.file.name}</span>
-                      <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold truncate max-w-[200px]">{tags.artist || "UNKNOWN"}</span>
+                  <td className="px-4 py-3 overflow-hidden">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold text-white group-hover:text-[var(--accent-cyan)] transition-colors truncate">{tags.title || file.file.name}</span>
+                      <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold truncate">{tags.artist || "UNKNOWN"}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-3 text-center overflow-hidden">
                     <span className="text-xs font-mono text-white/60 font-bold">{tags.bpm || "---"}</span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`text-[10px] font-mono px-2 py-1 rounded-lg border ${isActive ? 'bg-[var(--accent-magenta)] text-white border-transparent' : 'bg-white/5 text-[var(--accent-magenta)] border-white/10 font-bold'}`}>
+                  <td className="px-4 py-3 text-center overflow-hidden">
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${isActive ? 'bg-[var(--accent-magenta)] text-white border-transparent' : 'bg-white/5 text-[var(--accent-magenta)] border-white/10 font-bold'}`}>
                       {tags.initialKey || "---"}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs text-white/40 font-medium">{tags.genre || "---"}</span>
+                  <td className="px-4 py-3 overflow-hidden">
+                    <span className="text-xs text-white/40 font-medium truncate block">{tags.genre || "---"}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center">{renderStars(tags.rating)}</div>
+                  <td className="px-4 py-3 overflow-hidden">
+                    <div className="flex h-full items-center">{renderStars(tags.rating)}</div>
                   </td>
-                  <td className="px-6 py-4 text-right text-[10px] text-white/20 font-bold uppercase tracking-wider">
+                  <td className="px-4 py-3 text-right text-[10px] text-white/20 font-bold uppercase tracking-wider overflow-hidden">
                     {date}
                   </td>
-                  <td className="px-6 py-4 rounded-r-2xl text-center">
-                     <button className="p-2 text-white/20 hover:text-white transition-colors">
+                  <td className="px-4 py-3 overflow-hidden text-center">
+                     <button className="p-1 text-white/10 hover:text-white transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
                      </button>
                   </td>
@@ -233,17 +245,22 @@ const TrackTable: React.FC<TrackTableProps> = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/40 backdrop-blur-xl border border-white/10 p-2 rounded-full shadow-2xl z-40">
+        <div className="flex items-center justify-center gap-4 bg-white/[0.02] border-t border-white/5 p-4 shrink-0 transition-all">
            <button 
              onClick={() => onPageChange?.(Math.max(1, currentPage - 1))}
-             className={`p-2 rounded-full transition-all ${currentPage === 1 ? 'text-white/10' : 'text-white hover:bg-white/10'}`}
+             disabled={currentPage === 1}
+             className={`p-2 rounded-lg transition-all ${currentPage === 1 ? 'text-white/10 cursor-not-allowed' : 'text-white hover:bg-white/5 active:scale-90'}`}
            >
              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
            </button>
-           <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase px-2">Strona {currentPage} z {totalPages}</span>
+           <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold tracking-widest text-[var(--accent-cyan)] font-mono">{currentPage}</span>
+              <span className="text-[10px] font-bold tracking-widest text-white/20 uppercase">z {totalPages}</span>
+           </div>
            <button 
              onClick={() => onPageChange?.(Math.min(totalPages, currentPage + 1))}
-             className={`p-2 rounded-full transition-all ${currentPage === totalPages ? 'text-white/10' : 'text-white hover:bg-white/10'}`}
+             disabled={currentPage === totalPages}
+             className={`p-2 rounded-lg transition-all ${currentPage === totalPages ? 'text-white/10 cursor-not-allowed' : 'text-white hover:bg-white/5 active:scale-90'}`}
            >
              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
            </button>
