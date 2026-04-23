@@ -117,7 +117,7 @@ export const useLibrary = (renamePattern: string) => {
       localStorage.setItem('playlists', JSON.stringify(playlists));
   }, [playlists]);
 
-  // Apply Rename Pattern
+  // Apply Rename Pattern when pattern OR files (tags) change
   useEffect(() => {
     setFiles(currentFiles => 
         currentFiles.map(file => {
@@ -128,9 +128,6 @@ export const useLibrary = (renamePattern: string) => {
         })
     );
   }, [renamePattern]);
-
-
-  // --- Actions ---
 
   const addFiles = useCallback(async (newFilesData: { file: File, handle?: any, path?: string }[]) => {
     const validAudioFiles = newFilesData.filter(item => SUPPORTED_FORMATS.includes(item.file.type));
@@ -158,9 +155,21 @@ export const useLibrary = (renamePattern: string) => {
     setFiles(prev => [...prev, ...newAudioFiles]);
   }, []);
 
+  // Sync newName when fetchedTags are updated manually or by AI
   const updateFile = useCallback((id: string, updates: Partial<AudioFile>) => {
-    setFiles(prevFiles => prevFiles.map(f => f.id === id ? { ...f, ...updates } : f));
-  }, []);
+    setFiles(prevFiles => prevFiles.map(f => {
+      if (f.id === id) {
+        const merged = { ...f, ...updates };
+        // If tags changed, also update newName
+        if (updates.fetchedTags || updates.originalTags) {
+          const tagsToUse = merged.fetchedTags || merged.originalTags;
+          merged.newName = generatePath(renamePattern, tagsToUse, merged.file.name);
+        }
+        return merged;
+      }
+      return f;
+    }));
+  }, [renamePattern]);
 
   const removeFiles = useCallback((idsToRemove: string[]) => {
       setFiles(prev => prev.filter(f => !idsToRemove.includes(f.id)));

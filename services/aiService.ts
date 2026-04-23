@@ -184,9 +184,9 @@ export const generateSmartPlaylist = async (
     files: AudioFile[],
     userPrompt: string
 ): Promise<{ name: string; ids: string[] }> => {
-    if (!process.env.API_KEY) throw new Error("Brak klucza API Gemini.");
+    if (!process.env.GEMINI_API_KEY) throw new Error("Brak klucza API Gemini.");
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const libraryContext = files.map(f => {
         const t = f.fetchedTags || f.originalTags;
@@ -237,8 +237,8 @@ export const generateSmartPlaylist = async (
 
 // --- IMAGE GENERATION ---
 export const generateCoverArt = async (prompt: string, size: '1K' | '2K'): Promise<string> => {
-    if (!process.env.API_KEY) throw new Error("Brak klucza API Gemini.");
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (!process.env.GEMINI_API_KEY) throw new Error("Brak klucza API Gemini.");
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-image-preview',

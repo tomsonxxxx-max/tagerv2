@@ -106,18 +106,25 @@ const MediaBrowser: React.FC<MediaBrowserProps> = ({
         ))}
       </div>
 
-      {/* Top Bar with Tags */}
-      <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/[0.02]">
-         <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide py-1">
+      {/* Top Bar with Popular Tags */}
+      <div className="flex flex-col p-4 border-b border-white/10 bg-white/[0.03] shrink-0">
+         <div className="flex items-center gap-3 mb-2 text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A1 1 0 013.586 8H6V2a1 1 0 011-1h6a1 1 0 011 1v6h2.414a1 1 0 01.707 1.293z" clipRule="evenodd" />
+            </svg>
+            Popularne Tagi
+         </div>
+         <div className="flex flex-wrap gap-2 py-1 scrollbar-hide">
             {popularTags.slice(0, 15).map(tag => (
                <button
                  key={tag}
                  onClick={() => onTagClick?.(tag)}
-                 className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-[10px] text-white/50 hover:text-white transition-all whitespace-nowrap"
+                 className="px-3 py-1.5 bg-white/5 hover:bg-[var(--accent-cyan)]/20 border border-white/10 hover:border-[var(--accent-cyan)]/30 rounded-full text-[10px] font-bold text-white/50 hover:text-[var(--accent-cyan)] transition-all whitespace-nowrap uppercase tracking-wider shadow-sm"
                >
-                 #{tag}
+                 {tag}
                </button>
             ))}
+            {popularTags.length === 0 && <span className="text-[10px] text-white/10 italic">Brak popularnych tagów w Twojej bibliotece</span>}
          </div>
       </div>
 

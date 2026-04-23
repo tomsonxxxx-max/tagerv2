@@ -850,19 +850,27 @@ const App: React.FC = () => {
               onSave={(tags) => {
                 updateFile(modalState.fileId, { fetchedTags: tags });
                 setModalState({ type: "none" });
-                addToast("Zaktualizowano tagi", "success");
+                addToast("Zaktualizowano tagi (Cache)", "success");
               }}
               onApply={async (tags) => {
                 try {
                   const fileToUpdate = files.find(f => f.id === modalState.fileId);
-                  if (fileToUpdate) {
-                    await applyTags(fileToUpdate, tags, !!directoryHandle);
-                    updateFile(modalState.fileId, { fetchedTags: tags, state: ProcessingState.SUCCESS });
-                    setModalState({ type: "none" });
-                    addToast("Zastosowano zmiany w pliku", "success");
+                  if (fileToUpdate && directoryHandle) {
+                    setIsSaving(true);
+                    const updatedFileWithTags = { ...fileToUpdate, fetchedTags: tags };
+                    const res = await saveFileDirectly(directoryHandle, updatedFileWithTags);
+                    if (res.success && res.updatedFile) {
+                      updateFile(modalState.fileId, res.updatedFile);
+                      setModalState({ type: "none" });
+                      addToast("Zapisano zmiany bezpośrednio w pliku", "success");
+                    } else {
+                      addToast(`Błąd zapisu pliku: ${res.errorMessage}`, "error");
+                    }
                   }
                 } catch (err: any) {
-                  addToast(`Błąd zapisu: ${err.message}`, "error");
+                  addToast(`Błąd krytyczny: ${err.message}`, "error");
+                } finally {
+                  setIsSaving(false);
                 }
               }}
               onManualSearch={async (q, f) => {
@@ -870,7 +878,7 @@ const App: React.FC = () => {
                 await analyzeBatch([f], true);
               }}
               onZoomCover={() => {}}
-              isApplying={false}
+              isApplying={isSaving}
               isDirectAccessMode={!!directoryHandle}
               popularTags={popularTags}
             />

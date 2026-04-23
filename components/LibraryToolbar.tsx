@@ -134,58 +134,62 @@ const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
       </div>
 
       {/* Secondary Bar for Actions */}
-      <div className="h-10 bg-black/20 flex items-center px-8 gap-6 border-t border-white/5">
-        <div className="flex items-center gap-4">
+      <div className="h-14 bg-black/40 flex items-center px-8 gap-4 border-t border-white/5 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-2">
           <button 
             onClick={onImport}
-            className="text-[10px] uppercase font-bold text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+            className="flex items-center gap-2 bg-[var(--accent-blue)]/20 hover:bg-[var(--accent-blue)]/30 border border-[var(--accent-blue)]/30 text-[var(--accent-blue)] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+            title="Dodaj nowe pliki do biblioteki"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
             DODAJ PLIKI
           </button>
+          
           <button 
              onClick={onAnalyzeAll}
              disabled={isProcessing}
-             className="text-[10px] uppercase font-bold text-[var(--accent-magenta)] hover:text-white transition-colors flex items-center gap-1.5 group disabled:opacity-30"
+             className="flex items-center gap-2 bg-[var(--accent-magenta)]/20 hover:bg-[var(--accent-magenta)]/30 border border-[var(--accent-magenta)]/30 text-[var(--accent-magenta)] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(217,70,239,0.1)]"
+             title="Automatycznie otaguj wszystkie utwory przy użyciu AI"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 animate-pulse group-hover:animate-none" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>
-            AUTO-TAG ALL
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-pulse" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>
+            AUTO-TAG AI
           </button>
         </div>
 
-        <div className="h-4 w-px bg-white/10" />
+        <div className="h-8 w-px bg-white/10 mx-2" />
 
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-2 flex-1 scrollbar-hide overflow-x-auto py-1">
           {selectedCount > 0 ? (
             <>
-              <span className="text-[10px] font-bold text-[var(--accent-cyan)] glow-cyan uppercase">
-                Zaznaczono {selectedCount}
-              </span>
-              <button onClick={onAnalyzeSelected} className="tech-action-btn">AI ANALIZA</button>
-              <button onClick={onEdit} className="tech-action-btn">EDYCJA</button>
-              <button onClick={onRename} className="tech-action-btn">ZMIEŃ NAZWĘ</button>
-              <button onClick={onExport} className="tech-action-btn text-[var(--accent-magenta)]">EKSPORTUJ</button>
-              <button onClick={onDelete} className="tech-action-btn text-red-500/70 hover:text-red-400">USUŃ</button>
+              <div className="px-4 py-2 bg-[var(--accent-cyan)]/10 border border-[var(--accent-cyan)]/20 rounded-xl mr-2 shrink-0">
+                <span className="text-[10px] font-black text-[var(--accent-cyan)] uppercase tracking-[0.2em] leading-none">
+                  WYBRANO: {selectedCount}
+                </span>
+              </div>
+
+              <button onClick={onAnalyzeSelected} className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">ANALIZA AI</button>
+              <button onClick={onEdit} className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">EDYTUJ TAGI</button>
+              <button onClick={onRename} className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap">FORMAT NAZW</button>
+              <button onClick={onExport} className="bg-[var(--accent-magenta)]/10 hover:bg-[var(--accent-magenta)]/20 border border-[var(--accent-magenta)]/20 text-[var(--accent-magenta)] px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap">ZAPISZ ZMIANY</button>
+              <button onClick={onDelete} className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap">USUŃ</button>
             </>
           ) : (
-            <div className="flex items-center gap-4 opacity-40 grayscale pointer-events-none">
-              <span className="text-[10px] text-white/50 uppercase font-bold">Wybierz utwory, aby wykonać akcje</span>
+            <div className="flex items-center gap-3 px-5 py-2 bg-white/[0.03] rounded-2xl border border-white/5 border-dashed shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[10px] text-white/30 uppercase font-black tracking-[0.15em] italic whitespace-nowrap">Wybierz utwory z listy, aby odblokować panel akcji</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-           <button onClick={onFindDuplicates} className="text-[10px] font-bold text-white/30 hover:text-white transition-colors uppercase">Szukaj Duplikatów</button>
-           <button onClick={onConvertXml} className="text-[10px] font-bold text-white/30 hover:text-white transition-colors uppercase">XML Konwerter</button>
-           <button onClick={onClearAll} className="text-[10px] font-bold text-red-500/30 hover:text-red-500 transition-colors uppercase">Wyczyść</button>
+        <div className="flex items-center gap-2 shrink-0">
+           <button onClick={onFindDuplicates} className="px-3 py-2 text-[10px] font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl uppercase transition-all">Duplikaty</button>
+           <button onClick={onConvertXml} className="px-3 py-2 text-[10px] font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-xl uppercase transition-all">Export XML</button>
+           <div className="w-px h-5 bg-white/10 mx-1" />
+           <button onClick={onClearAll} className="px-3 py-2 text-[10px] font-black text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-xl uppercase transition-all">Czyść</button>
         </div>
       </div>
-
-      <style>{`
-        .tech-action-btn {
-          @apply text-[10px] font-bold text-white/40 hover:text-white hover:bg-white/5 px-2 py-1 rounded transition-all uppercase tracking-wider;
-        }
-      `}</style>
     </header>
   );
 };

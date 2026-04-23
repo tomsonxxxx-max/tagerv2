@@ -77,128 +77,137 @@ const PlayerDock: React.FC<PlayerDockProps> = ({
   const tags = activeFile?.fetchedTags || activeFile?.originalTags;
 
   return (
-    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl glass-effect rounded-2xl transition-all duration-500 z-50 shadow-2xl border border-white/5 ${isMinimized ? 'h-12 px-4' : 'h-20 px-8'}`}>
-      <audio
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
-        crossOrigin="anonymous"
-      />
+    <div 
+      className={`fixed left-1/2 -translate-x-1/2 glass-effect rounded-2xl transition-all duration-500 ease-spring z-50 shadow-2xl border border-white/10 flex flex-col overflow-hidden ${
+        isMinimized 
+          ? 'w-72 h-16 bottom-8 scale-90 opacity-90 hover:scale-100 hover:opacity-100 px-4' 
+          : 'w-[95%] max-w-7xl h-24 bottom-6 px-8 opacity-100'
+      }`}
+    >
+      {/* Progress Bar */}
+      <div 
+        className={`w-full bg-white/5 cursor-pointer group relative shrink-0 transition-all ${isMinimized ? 'h-0.5' : 'h-1'}`}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const pct = x / rect.width;
+          if (audioRef.current && duration) {
+            audioRef.current.currentTime = pct * duration;
+          }
+        }}
+      >
+        <div 
+          className="h-full bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-magenta)] relative transition-all duration-200"
+          style={{ width: `${progress}%` }}
+        >
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-[0_0_10px_white] transition-opacity"></div>
+        </div>
+      </div>
 
-      {/* Left: Track Info */}
-      <div className={`flex items-center gap-4 ${isMinimized ? 'w-auto' : 'w-1/4'}`}>
-        {activeFile ? (
-          <>
-            <div className={`${isMinimized ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg overflow-hidden border border-white/10 glow-cyan shrink-0 transition-all`}>
-              <AlbumCover tags={tags} className="w-full h-full object-cover" />
-            </div>
-            {!isMinimized && (
-              <div className="overflow-hidden">
-                <div className="text-sm font-bold text-white truncate font-heading">
+      <div className="flex-grow flex items-center justify-between">
+        <audio
+          ref={audioRef}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={() => setIsPlaying(false)}
+          crossOrigin="anonymous"
+        />
+
+        {/* Left: Track Info */}
+        <div className={`flex items-center gap-3 ${isMinimized ? 'w-auto max-w-[60%]' : 'w-1/4'}`}>
+          {activeFile ? (
+            <>
+              <div className={`${isMinimized ? 'w-10 h-10' : 'w-12 h-12'} rounded-xl overflow-hidden border border-white/10 glow-cyan shrink-0 group relative`}>
+                <AlbumCover tags={tags} className="w-full h-full object-cover" />
+              </div>
+              <div className="overflow-hidden whitespace-nowrap">
+                <div className={`font-bold text-white truncate font-heading leading-tight ${isMinimized ? 'text-xs' : 'text-sm'}`}>
                   {tags?.title || activeFile.file.name}
                 </div>
-                <div className="text-[10px] text-white/40 uppercase tracking-widest truncate">
-                  {tags?.artist || "Nieznany Artysta"}
-                </div>
+                {!isMinimized && (
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest truncate font-black mt-0.5">
+                    {tags?.artist || "Nieznany Artysta"}
+                  </div>
+                )}
               </div>
-            )}
-          </>
-        ) : (
-          !isMinimized && (
-            <div className="text-sm text-white/20 font-medium tracking-wide">
-               Wybierz utwór do odtworzenia
+            </>
+          ) : (
+            <div className="flex items-center gap-3 py-2 opacity-20">
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-dashed border-white/20"></div>
+              {!isMinimized && <div className="w-24 h-2 bg-white/40 rounded"></div>}
             </div>
-          )
-        )}
-      </div>
-
-      {/* Center: Controls & Progress */}
-      <div className={`flex items-center gap-4 flex-1 ${isMinimized ? 'justify-center mx-4' : 'flex-col justify-center max-w-2xl'}`}>
-        <div className={`flex items-center ${isMinimized ? 'gap-2' : 'gap-8'}`}>
-           {!isMinimized && (
-             <button className="p-2 text-white/40 hover:text-white transition-all">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-               </svg>
-             </button>
-           )}
-           
-           <button 
-             onClick={togglePlay}
-             disabled={!isPlayable}
-             className={`${isMinimized ? 'w-8 h-8' : 'w-12 h-12'} rounded-full bg-white flex items-center justify-center text-black shadow-lg glow-cyan hover:scale-110 active:scale-95 transition-all shrink-0`}
-           >
-             {isPlaying ? (
-               <svg xmlns="http://www.w3.org/2000/svg" className={`${isMinimized ? 'h-4 w-4' : 'h-6 w-6'}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-             ) : (
-               <svg xmlns="http://www.w3.org/2000/svg" className={`${isMinimized ? 'h-4 w-4' : 'h-6 w-6'} ml-0.5`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-             )}
-           </button>
-
-           {!isMinimized && (
-             <button className="p-2 text-white/40 hover:text-white transition-all">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-               </svg>
-             </button>
-           )}
+          )}
         </div>
 
-        <div className={`flex items-center gap-4 ${isMinimized ? 'flex-grow max-w-md' : 'w-full'}`}>
-          <span className="text-[10px] font-mono text-white/40 min-w-[35px] text-right">
-             {formatTime(currentTime)}
-          </span>
-          <div 
-            className={`flex-1 ${isMinimized ? 'h-1' : 'h-1.5'} bg-white/5 rounded-full overflow-hidden cursor-pointer relative transition-all`}
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              if (duration) audioRef.current!.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
-            }}
-          >
-             <div 
-               className="h-full bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-magenta)] shadow-[0_0_10px_rgba(0,212,255,0.5)] transition-all duration-100"
-               style={{ width: `${progress}%` }}
-             />
-             {!isMinimized && (
-               <div 
-                 className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border border-white/20 glow-cyan"
-                 style={{ left: `calc(${progress}% - 6px)` }}
-               />
-             )}
-          </div>
-          <span className="text-[10px] font-mono text-white/40 min-w-[35px]">
-             {formatTime(duration)}
-          </span>
-        </div>
-      </div>
+        {/* Center: Controls */}
+        <div className={`flex items-center ${isMinimized ? 'gap-2' : 'flex-col gap-1'}`}>
+          <div className={`flex items-center ${isMinimized ? 'gap-2' : 'gap-8'}`}>
+            {!isMinimized && (
+              <button className="text-white/30 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
+                </svg>
+              </button>
+            )}
+            
+            <button
+              onClick={togglePlay}
+              disabled={!isPlayable}
+              className={`${isMinimized ? 'w-8 h-8' : 'w-12 h-12'} rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl disabled:opacity-20 glow-white`}
+            >
+              {isPlaying ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className={`${isMinimized ? 'h-4 w-4' : 'h-6 w-6'}`} viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className={`${isMinimized ? 'h-4 w-4 ml-0.5' : 'h-6 w-6 ml-1'}`} viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
 
-      {/* Right: Sound & Tools */}
-      <div className={`flex items-center justify-end ${isMinimized ? 'gap-2' : 'gap-6 w-1/4'}`}>
-        {!isMinimized && (
-          <div className="flex items-center gap-3">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/40" viewBox="0 0 20 20" fill="currentColor">
-               <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 14.657a1 1 0 01-1.414-1.414A5 5 0 0011 8.586V6.172a7 7 0 012.241 2.241a7 7 0 011.416 6.244z" clipRule="evenodd" />
-             </svg>
-             <input
-               type="range"
-               min="0"
-               max="1"
-               step="0.01"
-               value={volume}
-               onChange={(e) => {
-                 const v = parseFloat(e.target.value);
-                 setVolume(v);
-                 if (audioRef.current) audioRef.current.volume = v;
-               }}
-               className="w-20 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-white"
-             />
+            {!isMinimized && (
+              <button className="text-white/30 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
+                </svg>
+              </button>
+            )}
           </div>
-        )}
-        
-        <div className="flex items-center gap-1">
+          {!isMinimized && (
+            <div className="flex items-center gap-3 text-[10px] font-mono text-white/30 font-bold uppercase tracking-widest">
+              <span>{formatTime(currentTime)}</span>
+              <span className="opacity-20">/</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Actions */}
+        <div className={`flex items-center justify-end ${isMinimized ? 'gap-2' : 'w-1/4 gap-6'}`}>
+          {!isMinimized && (
+            <div className="hidden xl:flex items-center gap-3 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white/40" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 14.657a1 1 0 01-1.414-1.414A5 5 0 0011 8.586V6.172a7 7 0 012.241 2.241a7 7 0 011.416 6.244z" clipRule="evenodd" />
+                </svg>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    setVolume(v);
+                    if (audioRef.current) audioRef.current.volume = v;
+                  }}
+                  className="w-20 h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-white"
+                />
+            </div>
+          )}
+          
           <button 
             onClick={() => setIsMinimized(!isMinimized)}
-            className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+            className={`text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all ${isMinimized ? 'p-2' : 'p-3'}`}
             title={isMinimized ? "Rozwiń" : "Zminimalizuj"}
           >
             {isMinimized ? (
@@ -211,13 +220,6 @@ const PlayerDock: React.FC<PlayerDockProps> = ({
                </svg>
             )}
           </button>
-          {!isMinimized && (
-            <button className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-all">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-               </svg>
-            </button>
-          )}
         </div>
       </div>
     </div>

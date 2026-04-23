@@ -182,6 +182,23 @@ const EditTagsModal: React.FC<EditTagsModalProps> = ({
            </button>
         </div>
 
+        {/* Info Banner for non-direct mode */}
+        {!isDirectAccessMode && (
+          <div className="mb-8 p-5 bg-amber-500/10 border border-amber-500/20 rounded-3xl flex items-start gap-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+             <div className="mt-1 text-amber-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+             </div>
+             <div>
+                <p className="text-xs font-black text-amber-200 uppercase tracking-widest">Tryb Cache (Podgląd)</p>
+                <p className="text-[10px] text-amber-200/60 mt-1.5 leading-relaxed font-bold">
+                   Nie podłączono folderu źródłowego. Twoje zmiany zostaną zachowane w tymczasowej bazie danych programu, ale plik fizyczny na dysku pozostanie bez zmian. Aby zapisać tagi na stałe w pliku MP3, wybierz "Podłącz Katalog" w ustawieniach głównych.
+                </p>
+             </div>
+          </div>
+        )}
+
         {/* Manual Search */}
         <div className="mb-8 p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
            <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Wyszukaj Tagi (Ręcznie)</label>
